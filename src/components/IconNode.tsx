@@ -1,4 +1,4 @@
-import * as Types from "@/types";
+import * as Types from "$/types";
 
 function IconNode(props: Types.IconNode) {
   return <p>Icon Node: {props.id}</p>

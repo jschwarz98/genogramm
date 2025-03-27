@@ -1,5 +1,5 @@
-import * as Types from "@/types";
-import IconNode from "@/components/IconNode";
+import * as Types from "$/types";
+import IconNode from "$/components/IconNode";
 
 function ObjectNode(props: Types.ObjectNodes) {
   if (props.type === "arrow") {
