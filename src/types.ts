@@ -1,14 +1,21 @@
+// Base Types
 export type Id = string;
 export type NodeType = 'icon' | 'text' | 'icon-text' | 'arrow';
 export type Coordinate = { x: number, y: number };
 export type Dimensions = { width: number, height: number };
+export type HtmlColor = string;
 
+// Base Node
 export type Node = {
   id: Id,
   type: NodeType,
   position: Coordinate,
   dimensions: Dimensions,
+  backgroundColor: HtmlColor,
 };
+
+// Special Nodes
+export type ObjectNodes = TextNode | IconNode | IconTextNode;
 
 export type TextNode = Node & {
   content: string,
