@@ -1,10 +1,13 @@
 // Base Types
 export type Id = string;
-export type NodeType = 'icon' | 'text' | 'icon-text' | 'arrow';
 export type Coordinate = { x: number, y: number };
 export type Dimensions = { width: number, height: number };
-export type HtmlColor = string;
-
+export type HtmlColor = string | 'transparent';
+export type BorderStyle = {
+  color: HtmlColor,
+  style: string,
+  thickness: string,
+}
 // Canvas
 
 export enum CanvasMode {
@@ -17,27 +20,29 @@ export enum CanvasMode {
 }
 
 // Base Node
-export type Node = {
+
+type Node = {
   id: Id,
-  type: NodeType,
   position: Coordinate,
   dimensions: Dimensions,
+  border: BorderStyle | null,
   backgroundColor: HtmlColor,
+  information: string | null
 };
 
-// Special Nodes
-export type ObjectNodes = TextNode | IconNode | IconTextNode;
+export type PersonNode = Node & {
+  iconUrl: string
+  name: string,
+}
 
-export type TextNode = Node & {
-  content: string,
-};
-
-export type IconNode = Node & {
-  srcUrl: string,
-};
-
-export type IconTextNode = TextNode & IconNode;
-
+export type LineStyle = 'solid' | 'dotted' | 'double' | 'tripple';
+export type ArrowHead = 'none' | 'hollow' | 'solid';
 export type ArrowNode = Node & {
-  edges: Coordinate[],
+  relativePoints: Coordinate[],
+  node1: Node | null, // this is one moved, we need to move the x/y and relative points
+  node2: Node | null, // this is one moved, we need to move the relative points
+  startingArrowHead: ArrowHead,
+  endingArrowHead: ArrowHead,
+  lineStyles: LineStyle[],
+
 }

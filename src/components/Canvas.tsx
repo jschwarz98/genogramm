@@ -1,14 +1,52 @@
 import { pointerEventToCanvasPoint, ZeroCoordinate } from "$/lib/utils";
 import { CanvasMode, Coordinate } from "$/types";
-import { useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 function Canvas() {
-  const size = 800;
-  const svgRef = useRef(null);
+  const svgRef = useRef<SVGSVGElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  const [canvasWidth, setCanvasWidth] = useState<number>(1200);
+  const [canvasHeight, setCanvasHeight] = useState<number>(900);
+
   const [mode, setMode] = useState<CanvasMode>(CanvasMode.None);
   const [offset, setOffset] = useState<Coordinate>(ZeroCoordinate);
   const [pointerOrigin, setPointerOrigin] = useState<Coordinate>(ZeroCoordinate);
   const [pointerLocation, setPointerLocation] = useState<Coordinate>(ZeroCoordinate);
+
+  useEffect(() => {
+    const recalculateCanvasSize = () => {
+      console.log("recalculating canvas size")
+      if (!containerRef.current) {
+        console.log("no current")
+        return;
+      }
+
+      const rect = containerRef.current.getBoundingClientRect();
+      console.log("dimensions", rect);
+      setCanvasWidth(rect.width);
+      setCanvasHeight(rect.height);
+    };
+    window.addEventListener('resize', recalculateCanvasSize);
+    recalculateCanvasSize();
+    let counter = 0;
+    let height = canvasHeight;
+    const interval = setInterval(() => {
+      recalculateCanvasSize();
+      if (canvasHeight > 0 && canvasHeight === height) {
+        counter++;
+      }
+      height = canvasHeight;
+      if (counter > 10) {
+        console.log("STOPPED INTERVAL")
+        clearInterval(interval)
+      }
+    }, 50);
+    return () => {
+      window.removeEventListener('resize', recalculateCanvasSize)
+      clearInterval(interval);
+    };
+  }, [containerRef])
 
   const getAbsoluteOffset = function (): Coordinate {
     if (!svgRef) {
@@ -17,7 +55,6 @@ function Canvas() {
     const bounds = svgRef.current.getBoundingClientRect();
     return { x: bounds.x ?? 0, y: bounds.y ?? 0 };
   }
-
   const onMouseDown = function (e: React.MouseEvent) {
     e.preventDefault();
     e.stopPropagation();
@@ -56,19 +93,30 @@ function Canvas() {
     e.stopPropagation();
     setMode(CanvasMode.None);
   }
+  const onMouseLeave = function (e: React.MouseEvent) {
+    e.preventDefault();
+    e.stopPropagation();
+    if (mode !== CanvasMode.Inserting) {
+      setMode(CanvasMode.None)
+    }
+  }
 
   return (
-    <svg
-      ref={svgRef}
-      className="w-100 h-100"
-      viewBox={`${offset.x} ${offset.y} ${size} ${size}`}
-      preserveAspectRatio="xMidYMid meet"
-      onMouseDown={onMouseDown}
-      onMouseMove={onMouseMove}
-      onMouseUp={onMouseUp}>
-      <circle cx="250" cy="250" r="50" fill="blue" onMouseDown={e => { e.stopPropagation(); e.preventDefault(); console.log("rec clicked"); }} />
+    <div ref={containerRef} className="h-full" onResize={() => console.log("RESSS")}>
+      <svg
+        ref={svgRef}
+        className="bg-white w-full h-full"
+        style={{ width: `${canvasWidth}px`, height: `${canvasHeight}px` }}
+        viewBox={`${offset.x} ${offset.y} ${canvasWidth} ${canvasHeight}`}
+        onMouseDown={onMouseDown}
+        onMouseMove={onMouseMove}
+        onMouseUp={onMouseUp}
+        onMouseLeave={onMouseLeave}>
 
-    </svg >
+        <circle cx="250" cy="250" r="50" fill="blue" onMouseDown={e => { e.stopPropagation(); e.preventDefault(); console.log("rec clicked"); }} />
+
+      </svg>
+    </div>
   );
 }
 
