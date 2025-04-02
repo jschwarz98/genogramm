@@ -23,6 +23,7 @@ export enum CanvasMode {
 
 type Node = {
   id: Id,
+  type: 'Person' | 'Arrow',
   position: Coordinate,
   dimensions: Dimensions,
   border: BorderStyle | null,

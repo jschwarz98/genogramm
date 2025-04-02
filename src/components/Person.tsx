@@ -1,6 +1,6 @@
 import * as Types from "$/types";
 
-function PersonNode(props: Types.PersonNode) {
+function Person(props: Types.PersonNode) {
 
 
   return <foreignObject id={props.id} x={props.position.x} y={props.position.y}>
@@ -20,4 +20,4 @@ function PersonNode(props: Types.PersonNode) {
   </foreignObject>
 }
 
-export default PersonNode;
+export default Person;

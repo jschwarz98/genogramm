@@ -1,21 +1,44 @@
 import { useState } from "react";
-import { CursorArrowRaysIcon, UserPlusIcon, UserGroupIcon } from "@heroicons/react/24/solid";
+import { MousePointer2, User, Users } from "lucide-react";
 import EventBus, { Event } from "$/lib/eventsbus";
+import { Button } from "$/components/ui/button"
+import TooltipWrapper from "$/components/ui/TooltipWrapper";
 export type Tool = 'selection' | 'addUser' | 'addRelation';
 
+function getColorClass(selectedTool: Tool, neededTool: Tool): string {
+  if (neededTool === selectedTool) {
+    return "text-blue-500"
+  }
+  return "";
+}
 
 export default function () {
   const [selectedTool, setSelectedTool] = useState<Tool>('selection');
   const [personSelected, setPersonSelected] = useState<boolean>(false);
-  return <div id="toolbar-container">
-    <button id="toolbar-use-selection" onClick={() => EventBus.emit(Event.Toolbar_Clicked_Selection, null)}>
-      <CursorArrowRaysIcon className={"size-6 " + (selectedTool === "selection" ? "text-blue-500" : "")}></CursorArrowRaysIcon>
-    </button>
-    <button id="toolbar-add-person" onClick={() => EventBus.emit(Event.Toolbar_Clicked_AddPerson, null)}>
-      <UserPlusIcon className={"size-6 " + (selectedTool === "addUser" ? "text-blue-500" : "")}></UserPlusIcon>
-    </button>
-    <button id="toolbar-add-related-person" disabled={!personSelected} onClick={() => EventBus.emit(Event.Toolbar_Clicked_AddRelation, null)}>
-      <UserGroupIcon className={"size-6 " + (selectedTool === "addRelation" ? "text-blue-500" : "")}></UserGroupIcon>
-    </button>
+
+  // derived states...
+  const addRelationButtonDisabled = !personSelected;
+  const relationButtonTooltip = "Beziehung hinzufügen" + (addRelationButtonDisabled ? " - Keine Person ausgewählt" : "")
+  //...
+  return <div id="toolbar-container" className="flex flex-wrap p-1 gap-1">
+    <TooltipWrapper content={<p>Auswahl</p>}>
+      <Button variant="outline" size="icon" onClick={() => { setSelectedTool('selection'); EventBus.emit(Event.Toolbar_Clicked_Selection, null) }}>
+        <MousePointer2 className={getColorClass(selectedTool, "selection")}></MousePointer2>
+      </Button>
+    </TooltipWrapper>
+
+    <TooltipWrapper content={<p>Person hinzufügen</p>}>
+      <Button variant="outline" size="icon" onClick={() => { setSelectedTool('addUser'); EventBus.emit(Event.Toolbar_Clicked_AddPerson, null) }}>
+        <User className={getColorClass(selectedTool, "addUser")}></User>
+      </Button>
+    </TooltipWrapper>
+
+    <TooltipWrapper content={<p>{relationButtonTooltip}</p>}>
+      <Button variant="outline" size="icon" disabled={addRelationButtonDisabled} onClick={() => { setSelectedTool('addRelation'); EventBus.emit(Event.Toolbar_Clicked_AddRelation, null) }}>
+        <Users className={getColorClass(selectedTool, "addRelation")}></Users>
+      </Button>
+    </TooltipWrapper>
+
+
   </div>
 }

@@ -2,16 +2,16 @@ export enum Event {
   Toolbar_Clicked_Selection = "Toolbar_Clicked_Selection",
   Toolbar_Clicked_AddPerson = "Toolbar_Clicked_AddPerson",
   Toolbar_Clicked_AddRelation = "Toolbar_Clicked_AddRelation",
-  PersonSelected = "personSelected",
-  ClickedCanvas = "clickedCanvas"
+  Canvas_Clicked_Canvas = "Canvas_Clicked_Cavas",
+  CanvasElement_Clicked_Person = "CanvasElement_Clicked_Person",
 }
 
 export type EventPayload = {
   [Event.Toolbar_Clicked_Selection]: null;
   [Event.Toolbar_Clicked_AddPerson]: null;
   [Event.Toolbar_Clicked_AddRelation]: null;
-  [Event.PersonSelected]: string;
-  [Event.ClickedCanvas]: null;
+  [Event.CanvasElement_Clicked_Person]: string;
+  [Event.Canvas_Clicked_Canvas]: null;
 }
 type EventHandler<T> = (payload: T) => void;
 

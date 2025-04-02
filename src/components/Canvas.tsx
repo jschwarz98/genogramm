@@ -1,6 +1,7 @@
 import { pointerEventToCanvasPoint, ZeroCoordinate } from "$/lib/utils";
-import { CanvasMode, Coordinate } from "$/types";
+import { CanvasMode, Coordinate, PersonNode, ArrowNode } from "$/types";
 import { useCallback, useEffect, useRef, useState } from "react";
+import Person from "$/components/Person";
 
 function Canvas() {
   const svgRef = useRef<SVGSVGElement>(null);
@@ -14,7 +15,23 @@ function Canvas() {
   const [pointerOrigin, setPointerOrigin] = useState<Coordinate>(ZeroCoordinate);
   const [pointerLocation, setPointerLocation] = useState<Coordinate>(ZeroCoordinate);
 
+  const [elements, setElements] = useState<Array<PersonNode | ArrowNode>>([]);
+  const [svgResizeObserver, setSvgResizeObserver] = useState<ResizeObserver>(new ResizeObserver((entries: ResizeObserverEntry[]) => {
+    console.log("currently have ", entries.length, "entries in the observer");
+    entries.forEach(entry => {
+      const rect = entry.contentRect
+      setCanvasWidth(rect.width);
+      setCanvasHeight(rect.height);
+    })
+  }));
   useEffect(() => {
+
+    if (svgResizeObserver) {
+      svgResizeObserver.disconnect();
+    }
+    svgResizeObserver.observe(containerRef.current);
+
+
     const recalculateCanvasSize = () => {
       console.log("recalculating canvas size")
       if (!containerRef.current) {
@@ -77,13 +94,12 @@ function Canvas() {
 
     const pointerLocation = pointerEventToCanvasPoint(e, getAbsoluteOffset(), offset)
     if (mode === CanvasMode.DraggingCanvas) {
-      const slowDownFactor = 0.5;
+      const slowDownFactor = 1;
       const xDif = Math.round(slowDownFactor * (pointerOrigin.x - pointerLocation.x));
       const yDif = Math.round(slowDownFactor * (pointerOrigin.y - pointerLocation.y));
       setOffset({ x: offset.x + xDif, y: offset.y + yDif });
       setPointerOrigin(pointerLocation);
     } else {
-
       setPointerLocation(pointerLocation);
       // TODO when resizing und oder selection oder so, dann besondere logik hier anwenden
     }
@@ -115,6 +131,12 @@ function Canvas() {
 
         <circle cx="250" cy="250" r="50" fill="blue" onMouseDown={e => { e.stopPropagation(); e.preventDefault(); console.log("rec clicked"); }} />
 
+        {elements.map(element => {
+          switch (element.type) {
+            case "Person": return <Person key={element.id} {...(element as PersonNode)}></Person>;
+            default: return <></>
+          }
+        })}
       </svg>
     </div>
   );
