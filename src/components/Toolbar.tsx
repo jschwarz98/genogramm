@@ -20,7 +20,7 @@ export default function () {
   const addRelationButtonDisabled = !personSelected;
   const relationButtonTooltip = "Beziehung hinzufügen" + (addRelationButtonDisabled ? " - Keine Person ausgewählt" : "")
   //...
-  return <div id="toolbar-container" className="flex flex-wrap p-1 gap-1">
+  return <div id="toolbar-container" className="flex flex-wrap gap-1">
     <TooltipWrapper content={<p>Auswahl</p>}>
       <Button variant="outline" size="icon" onClick={() => { setSelectedTool('selection'); EventBus.emit(Event.Toolbar_Clicked_Selection, null) }}>
         <MousePointer2 className={getColorClass(selectedTool, "selection")}></MousePointer2>

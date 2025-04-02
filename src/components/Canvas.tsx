@@ -7,8 +7,8 @@ function Canvas() {
   const svgRef = useRef<SVGSVGElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const [canvasWidth, setCanvasWidth] = useState<number>(1200);
-  const [canvasHeight, setCanvasHeight] = useState<number>(900);
+  const [canvasWidth, setCanvasWidth] = useState<number>(120);
+  const [canvasHeight, setCanvasHeight] = useState<number>(90);
 
   const [mode, setMode] = useState<CanvasMode>(CanvasMode.None);
   const [offset, setOffset] = useState<Coordinate>(ZeroCoordinate);
@@ -20,50 +20,20 @@ function Canvas() {
     console.log("currently have ", entries.length, "entries in the observer");
     entries.forEach(entry => {
       const rect = entry.contentRect
-      setCanvasWidth(rect.width);
-      setCanvasHeight(rect.height);
+      // - 8 to account for margin
+      setCanvasWidth(Math.max(0, Math.floor(rect.width) - 8));
+      setCanvasHeight(Math.max(0, Math.floor(rect.height) - 8));
     })
   }));
   useEffect(() => {
-
     if (svgResizeObserver) {
       svgResizeObserver.disconnect();
+      svgResizeObserver.observe(svgRef.current);
     }
-    svgResizeObserver.observe(containerRef.current);
-
-
-    const recalculateCanvasSize = () => {
-      console.log("recalculating canvas size")
-      if (!containerRef.current) {
-        console.log("no current")
-        return;
-      }
-
-      const rect = containerRef.current.getBoundingClientRect();
-      console.log("dimensions", rect);
-      setCanvasWidth(rect.width);
-      setCanvasHeight(rect.height);
-    };
-    window.addEventListener('resize', recalculateCanvasSize);
-    recalculateCanvasSize();
-    let counter = 0;
-    let height = canvasHeight;
-    const interval = setInterval(() => {
-      recalculateCanvasSize();
-      if (canvasHeight > 0 && canvasHeight === height) {
-        counter++;
-      }
-      height = canvasHeight;
-      if (counter > 10) {
-        console.log("STOPPED INTERVAL")
-        clearInterval(interval)
-      }
-    }, 50);
     return () => {
-      window.removeEventListener('resize', recalculateCanvasSize)
-      clearInterval(interval);
+      svgResizeObserver.disconnect()
     };
-  }, [containerRef])
+  }, [svgRef])
 
   const getAbsoluteOffset = function (): Coordinate {
     if (!svgRef) {
@@ -76,10 +46,8 @@ function Canvas() {
     e.preventDefault();
     e.stopPropagation();
 
-    console.log("on mouse down", e);
     const shift = e.shiftKey;
     setPointerOrigin(pointerEventToCanvasPoint(e, getAbsoluteOffset(), offset));
-    console.log("new pointer origin", pointerOrigin);
     if (shift) {
       setMode(CanvasMode.SelectionArea);
     } else {
@@ -90,13 +58,12 @@ function Canvas() {
     if (mode === CanvasMode.None || mode === CanvasMode.Inserting) {
       return;
     }
-    console.log(mode);
 
     const pointerLocation = pointerEventToCanvasPoint(e, getAbsoluteOffset(), offset)
     if (mode === CanvasMode.DraggingCanvas) {
-      const slowDownFactor = 1;
-      const xDif = Math.round(slowDownFactor * (pointerOrigin.x - pointerLocation.x));
-      const yDif = Math.round(slowDownFactor * (pointerOrigin.y - pointerLocation.y));
+      const slowDownFactor = 0.9;
+      const xDif = Math.floor(slowDownFactor * (pointerOrigin.x - pointerLocation.x));
+      const yDif = Math.floor(slowDownFactor * (pointerOrigin.y - pointerLocation.y));
       setOffset({ x: offset.x + xDif, y: offset.y + yDif });
       setPointerOrigin(pointerLocation);
     } else {
@@ -118,11 +85,11 @@ function Canvas() {
   }
 
   return (
-    <div ref={containerRef} className="h-full" onResize={() => console.log("RESSS")}>
+    <div ref={containerRef} className="h-full rounded-md overflow-hidden">
       <svg
         ref={svgRef}
-        className="bg-white w-full h-full"
-        style={{ width: `${canvasWidth}px`, height: `${canvasHeight}px` }}
+        className="bg-white w-full h-full block"
+
         viewBox={`${offset.x} ${offset.y} ${canvasWidth} ${canvasHeight}`}
         onMouseDown={onMouseDown}
         onMouseMove={onMouseMove}
