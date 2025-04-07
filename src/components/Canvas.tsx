@@ -3,6 +3,7 @@ import {pointerEventToCanvasPoint, ZeroCoordinate} from "$/lib/utils";
 import {ArrowNode, CanvasMode, Coordinate, NodeType, PersonNode} from "$/types";
 import Person from "$/components/Person";
 import exportSvg from "$/lib/export/render/export-svg";
+import Bus, {Event} from "$/lib/event-bus";
 
 function Canvas() {
     const svgRef = useRef<SVGSVGElement>(null);
@@ -57,6 +58,21 @@ function Canvas() {
         };
     }, [svgRef])
 
+    useEffect(() => {
+        const exportCurrentSvg = async () => {
+            const result = await exportSvg(svgRef.current);
+            if (result.success) {
+                alert("success")
+            } else {
+                alert("error")
+            }
+        }
+        Bus.on(Event.Toolbar_Clicked_Export, exportCurrentSvg);
+        return () => {
+            Bus.off(Event.Toolbar_Clicked_Export, exportCurrentSvg);
+        }
+    })
+
     const getAbsoluteOffset = function (): Coordinate {
         if (!svgRef) {
             return ZeroCoordinate;
@@ -106,55 +122,27 @@ function Canvas() {
         }
     }
 
-    const exportCurrentSvg = async () => {
-        const result = await exportSvg(svgRef.current);
-        if (result.success) {
-            alert("success")
-        } else {
-            alert("error")
-        }
-    }
 
     return (
-        <>
-            <button onClick={exportCurrentSvg}>export</button>
-            <div>
-
-                <div ref={containerRef} className="h-full rounded-md overflow-hidden">
-                    <svg
-                        ref={svgRef}
-                        xmlns="http://www.w3.org/2000/svg"
-                        className="bg-white w-full h-full block"
-                        viewBox={`${offset.x} ${offset.y} ${canvasWidth} ${canvasHeight}`}
-                        onMouseDown={onMouseDown}
-                        onMouseMove={onMouseMove}
-                        onMouseUp={onMouseUp}
-                        onMouseLeave={onMouseLeave}>
-                        <>
-                            {
-                                /*
-                                [0, 1, 2, 3, 4, 5, 6, 7].flatMap(m => {
-                                    return [0, 1, 2, 3, 4, 5, 6, 7].map(n => <circle key={"" + n + m} cx={50 + (n * 200)} cy={50 + (m * 200)} r="50"
-                                                                                     fill="blue"/>)
-                                })
-
-                                 */
-                                <></>
-                            }
-
-                            {elements.map(element => {
-                                switch (element.type) {
-                                    case NodeType.Person:
-                                        return <Person key={element.id} {...(element as PersonNode)}></Person>;
-                                    default:
-                                        return <></>
-                                }
-                            })}
-                        </>
-                    </svg>
-                </div>
-            </div>
-        </>
+        <div ref={containerRef} className="h-full rounded-md overflow-hidden">
+            <svg ref={svgRef}
+                 xmlns="http://www.w3.org/2000/svg"
+                 className="bg-white w-full h-full block shadow-xs"
+                 viewBox={`${offset.x} ${offset.y} ${canvasWidth} ${canvasHeight}`}
+                 onMouseDown={onMouseDown}
+                 onMouseMove={onMouseMove}
+                 onMouseUp={onMouseUp}
+                 onMouseLeave={onMouseLeave}>
+                {elements.map(element => {
+                    switch (element.type) {
+                        case NodeType.Person:
+                            return <Person key={element.id} {...(element as PersonNode)}></Person>;
+                        default:
+                            return <></>
+                    }
+                })}
+            </svg>
+        </div>
     );
 }
 

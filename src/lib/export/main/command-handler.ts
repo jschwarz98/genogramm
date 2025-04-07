@@ -23,10 +23,15 @@ export default async function (_element: Electron.IpcMainInvokeEvent,
     }
 
 
-    const sliceSize = 500;
+    const sliceSize = 2500;
     const slices = dimensionSlicing(dimensions, sliceSize);
-    const promises = await Promise.all(slices.map(slice => captureTile(svg, styles, slice)))
-    const pngDataUrl = await stitchTiles(promises, dimensions, padding);
+
+    const tiles: Array<XYWH & { dataUrl: string }> = [];
+    for (const slice of slices) {
+        const tile = await captureTile(svg, styles, slice);
+        tiles.push(tile);
+    }
+    const pngDataUrl = await stitchTiles(tiles, dimensions, padding);
 
     // Remove the data URL prefix and write the base64 data to file
     const base64Data = pngDataUrl.replace(/^data:image\/png;base64,/, '');

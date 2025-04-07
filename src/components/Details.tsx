@@ -1,6 +1,6 @@
 import {Node, NodeType, PersonNode} from "$/types";
 import {useEffect, useState} from "react";
-import Bus, {Event} from "$/lib/eventsbus";
+import Bus, {Event} from "$/lib/event-bus";
 
 
 export default function Details() {

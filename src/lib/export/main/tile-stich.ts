@@ -1,15 +1,9 @@
 import {XYWH} from "$/types";
 import {BrowserWindow, ipcMain} from "electron";
 
-export default async function stitchTiles(tiles: Array<{
-                                              x: number,
-                                              y: number,
-                                              width: number,
-                                              height: number,
-                                              dataUrl: string
-                                          }>,
+export default async function stitchTiles(tiles: Array<XYWH & { dataUrl: string }>,
                                           originalDimensions: XYWH, padding: number): Promise<string> {
-    return new Promise((resolve, reject) => {
+    return new Promise((resolve) => {
         // Create an offscreen BrowserWindow to do the stitching.
         const stitchWin = new BrowserWindow({
             width: originalDimensions.width,

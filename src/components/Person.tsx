@@ -1,5 +1,5 @@
 import * as Types from "$/types";
-import Bus, {Event} from "$/lib/eventsbus";
+import Bus, {Event} from "$/lib/event-bus";
 function Person(props: Types.PersonNode) {
     return <foreignObject id={props.id}
                           x={props.position.x}
