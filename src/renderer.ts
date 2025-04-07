@@ -28,11 +28,12 @@
 
 import './index.css';
 import './app';
+import {XYWH} from "$/types";
 
 declare global {
     interface Window {
         electronAPI: {
-            exportSvg: (svg: string, bounds: { x: number, y: number, width: number, height: number }, inlinedStyles: string) => Promise<{success: boolean}>;
+            exportSvg: (svg: string, bounds: XYWH, padding: number, inlinedStyles: string) => Promise<{success: boolean}>;
             ipcInvoke: (channel: string, data: any) => Promise<any>;
         };
     }

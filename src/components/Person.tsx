@@ -7,7 +7,6 @@ function Person(props: Types.PersonNode) {
                           width={props.dimensions.width}
                           height={props.dimensions.height}
                           onMouseDown={() => {
-                              console.log("mouse down on ", props.id, props);
                               Bus.emit(Event.NodeSelected, props)
                           }}>
 

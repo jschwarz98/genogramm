@@ -20,7 +20,7 @@ function Canvas() {
         id: 'id-123',
         backgroundColor: 'red',
         border: {style: 'solid', color: 'black', thickness: '1px'},
-        position: {x: 3750, y: 1500},
+        position: {x: 1500, y: 100},
         dimensions: {width: 200, height: 200},
         iconUrl: null,
         name: 'Test Person',
@@ -31,8 +31,8 @@ function Canvas() {
         id: 'id-1234',
         backgroundColor: 'red',
         border: {style: 'solid', color: 'black', thickness: '1px'},
-        position: {x: 1500, y: 1750},
-        dimensions: {width: 200, height: 200},
+        position: {x: 0, y: 0},
+        dimensions: {width: 200, height: 2500},
         iconUrl: null,
         name: 'Test Person',
         information: 'got some info on you!',
@@ -132,10 +132,14 @@ function Canvas() {
                         onMouseLeave={onMouseLeave}>
                         <>
                             {
+                                /*
                                 [0, 1, 2, 3, 4, 5, 6, 7].flatMap(m => {
                                     return [0, 1, 2, 3, 4, 5, 6, 7].map(n => <circle key={"" + n + m} cx={50 + (n * 200)} cy={50 + (m * 200)} r="50"
                                                                                      fill="blue"/>)
                                 })
+
+                                 */
+                                <></>
                             }
 
                             {elements.map(element => {

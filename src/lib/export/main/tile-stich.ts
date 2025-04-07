@@ -4,22 +4,22 @@ import {BrowserWindow, ipcMain} from "electron";
 export default async function stitchTiles(tiles: Array<{
                                               x: number,
                                               y: number,
+                                              width: number,
+                                              height: number,
                                               dataUrl: string
                                           }>,
-                                          sliceSize: number,
-                                          originalDimensions: XYWH): Promise<string> {
+                                          originalDimensions: XYWH, padding: number): Promise<string> {
     return new Promise((resolve, reject) => {
         // Create an offscreen BrowserWindow to do the stitching.
-        console.log("Stitch win dimensions:", originalDimensions);
         const stitchWin = new BrowserWindow({
             width: originalDimensions.width,
             height: originalDimensions.height,
-            show: true,
+            show: false,
             webPreferences: {
-                offscreen: false,
+                offscreen: true,
                 nodeIntegration: true,  // needed for the stitching script below
                 contextIsolation: false,
-                webSecurity: false,
+                webSecurity: false, // for some reason the script tag wont be executed otherwhise.. check on this later...
             }
         });
         // Build HTML content with a canvas element.
@@ -45,12 +45,11 @@ export default async function stitchTiles(tiles: Array<{
             canvas.height = ${originalDimensions.height};
             const ctx = canvas.getContext('2d');
             
-            console.log(tiles);
             for (const tile of tiles) {
               await new Promise((resolve) => {
                 const img = new Image();
                 img.onload = () => {
-                  ctx.drawImage(img, tile.x, tile.y, ${sliceSize}, ${sliceSize});
+                  ctx.drawImage(img, tile.x, tile.y, tile.width, tile.height);
                   resolve();
                 };
                 img.onerror = resolve;
@@ -58,24 +57,20 @@ export default async function stitchTiles(tiles: Array<{
               });
             }
             const finalDataUrl = canvas.toDataURL('image/png');
-            setTimeout(() => ipcRenderer.send('stitch-done', finalDataUrl), 10_000)
+            setTimeout(() => ipcRenderer.send('stitch-done', finalDataUrl), 1_000)
             
           });
         </script>
       </body>
       </html>
     `;
-        const stitchDataUrl = 'data:text/html;charset=utf-8,' + encodeURIComponent(htmlContent);
-        // Listen for the stitched result.
         ipcMain.once('stitch-done', (event, finalDataUrl) => {
             stitchWin.destroy();
             resolve(finalDataUrl);
         });
-        // load the content
+        const stitchDataUrl = 'data:text/html;charset=utf-8,' + encodeURIComponent(htmlContent);
         stitchWin.loadURL(stitchDataUrl).then(() => {
-            // Once loaded, send the tile data.
             stitchWin.webContents.send('tiles-data', tiles.map(tile => {
-                // draw everything starting at 0,0
                 tile.x -= originalDimensions.x;
                 tile.y -= originalDimensions.y;
                 return tile;

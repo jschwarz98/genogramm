@@ -52,7 +52,6 @@ class Bus implements EventBus {
   }
 
   emit<K extends keyof EventPayload>(event: K, payload: EventPayload[K]): void {
-    console.log("emitting event", event, payload)
     if (!this.#eventSubscribers[event]) {
       return;
     }

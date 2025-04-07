@@ -1,12 +1,12 @@
 import {XYWH} from "$/types";
 
-export default async function (svg: null | SVGSVGElement, padding = 5): Promise<{ success: boolean }> {
+export default async function (svg: null | SVGSVGElement, padding = 25): Promise<{ success: boolean }> {
     if (!svg) {
         return;
     }
     const bounds = computeAggregateBoundingBox(svg, padding);
     const pageStyles = getCSSStyles();
-    return window.electronAPI.exportSvg(svg.outerHTML, bounds, pageStyles);
+    return window.electronAPI.exportSvg(svg.outerHTML, bounds, padding, pageStyles);
 }
 
 function getCSSStyles(): string {
@@ -27,7 +27,7 @@ function getCSSStyles(): string {
     return styles;
 }
 
-function computeAggregateBoundingBox(svg: SVGSVGElement, padding = 0): XYWH {
+function computeAggregateBoundingBox(svg: SVGSVGElement, padding: number): XYWH {
     // Initialize bounds with large positive/negative numbers.
     let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
 
@@ -35,7 +35,7 @@ function computeAggregateBoundingBox(svg: SVGSVGElement, padding = 0): XYWH {
     const elements = svg.querySelectorAll('*');
     elements.forEach(el => {
         // If the element is an SVGGraphicsElement, use getBBox.
-        if (el instanceof SVGGraphicsElement) {
+        if (el instanceof SVGGraphicsElement || el instanceof SVGForeignObjectElement) {
             try {
                 const bbox = el.getBBox();
                 minX = Math.min(minX, bbox.x);
@@ -47,7 +47,7 @@ function computeAggregateBoundingBox(svg: SVGSVGElement, padding = 0): XYWH {
                 console.warn('Skipping element:', el, err);
             }
         } else {
-            // For non-SVG elements (like foreignObject), fallback to getBoundingClientRect.
+            // For non-SVG elements, fallback to getBoundingClientRect.
             const rect = el.getBoundingClientRect();
             minX = Math.min(minX, rect.x);
             minY = Math.min(minY, rect.y);
