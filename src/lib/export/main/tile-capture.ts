@@ -1,0 +1,63 @@
+import {XYWH} from "$/types";
+import {BrowserWindow, ipcMain} from "electron";
+
+export default async function captureTile(svg: string, styles: string, slice: XYWH) {
+    const offscreenWin = new BrowserWindow({
+        width: slice.width,
+        height: slice.height,
+        show: false,
+        webPreferences: {
+            offscreen: true,
+            nodeIntegration: true,
+            contextIsolation: false,
+        },
+    });
+
+    const sliceId = `loaded-tile-${slice.x}-${slice.y}`;
+    // Build an HTML document that embeds your SVG.
+    // We inline the SVG inside the body with no margins so that the SVG fills the window.
+    const htmlContent = `
+    <!DOCTYPE html>
+    <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="Content-Security-Policy" content="default-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src 'self' blob: data:;">
+        <style>
+          ${styles}
+          html, body, svg { margin: 0; padding: 0; min-width: ${slice.width}px; min-height: ${slice.height}px; border-radius: 0 !important; overflow: hidden}
+        </style>
+        <title>screenshot window</title>
+      </head>
+      <body>
+        ${svg}
+        <script>
+          // Optional: adjust the SVG dimensions if needed
+          const svg = document.querySelector('svg');
+          if (svg) {
+            svg.setAttribute('viewBox', '${slice.x} ${slice.y} ${slice.width} ${slice.height}');
+          }
+          
+          const {ipcRenderer} = require("electron");
+          window.onload = () => setTimeout(() => ipcRenderer.send('${sliceId}'), 500);
+        </script>
+      </body>
+    </html>
+  `;
+    const dataUrl = 'data:text/html;charset=utf-8,' + encodeURIComponent(htmlContent);
+    // Load the content into the offscreen window
+    await offscreenWin.loadURL(dataUrl);
+
+    // wait for the tile to finish loading
+    await new Promise((resolve) => {
+        ipcMain.once(sliceId, resolve);
+    });
+
+    console.log("got an image", sliceId)
+    // Capture the rendered page as an image
+    const image = await offscreenWin.webContents.capturePage({x: 0, y: 0, width: slice.width, height: slice.height});
+
+    offscreenWin.destroy();
+
+    // Convert the image to a PNG data URL
+    return {x: slice.x, y: slice.y, dataUrl: image.toDataURL()};
+}

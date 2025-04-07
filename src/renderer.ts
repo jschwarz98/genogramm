@@ -27,6 +27,13 @@
  */
 
 import './index.css';
-
-console.log('👋 This message is being logged by "renderer.ts", included via Vite');
 import './app';
+
+declare global {
+    interface Window {
+        electronAPI: {
+            exportSvg: (svg: string, bounds: { x: number, y: number, width: number, height: number }, inlinedStyles: string) => Promise<{success: boolean}>;
+            ipcInvoke: (channel: string, data: any) => Promise<any>;
+        };
+    }
+}

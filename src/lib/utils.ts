@@ -5,6 +5,10 @@ export function pointerEventToCanvasPoint(e: React.MouseEvent, absoluteOffset: C
   return { x: Math.round(e.clientX - absoluteOffset.x + canvasPosition.x), y: Math.round(e.clientY - absoluteOffset.y + canvasPosition.y) }
 }
 
+export function delay (ms: number, data: any = null) {
+  return new Promise((resolve) => setTimeout(() => resolve(data), ms))
+}
+
 
 /// SHAD CN UI STUFF
 import { clsx, type ClassValue } from "clsx"
@@ -13,5 +17,5 @@ import { twMerge } from "tailwind-merge"
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
-
 ///
+

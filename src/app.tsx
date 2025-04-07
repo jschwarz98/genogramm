@@ -1,6 +1,7 @@
 import { createRoot } from 'react-dom/client';
 import Canvas from '$/components/Canvas';
 import Toolbar from '$/components/Toolbar';
+import Details from "$/components/Details";
 
 const App = () => {
   return <div id="app" className="min-w-3xl h-full grid grid-cols-12 grid-rows-12 gap-1">
@@ -11,7 +12,7 @@ const App = () => {
       <Toolbar />
     </div>
     <div className="col-span-3 row-span-10 w-full h-full">
-      viel platz für die infos
+      <Details></Details>
     </div>
   </div>
 }

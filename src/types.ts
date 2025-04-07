@@ -2,6 +2,8 @@
 export type Id = string;
 export type Coordinate = { x: number, y: number };
 export type Dimensions = { width: number, height: number };
+export type XYWH = Coordinate & Dimensions;
+
 export type HtmlColor = string | 'transparent';
 export type BorderStyle = {
   color: HtmlColor,
@@ -20,10 +22,14 @@ export enum CanvasMode {
 }
 
 // Base Node
+export enum NodeType {
+  Person,
+  Arrow,
+}
 
-type Node = {
+export type Node = {
   id: Id,
-  type: 'Person' | 'Arrow',
+  type: NodeType,
   position: Coordinate,
   dimensions: Dimensions,
   border: BorderStyle | null,
@@ -32,6 +38,7 @@ type Node = {
 };
 
 export type PersonNode = Node & {
+  type: NodeType.Person,
   iconUrl: string
   name: string,
 }
@@ -39,6 +46,7 @@ export type PersonNode = Node & {
 export type LineStyle = 'solid' | 'dotted' | 'double' | 'tripple';
 export type ArrowHead = 'none' | 'hollow' | 'solid';
 export type ArrowNode = Node & {
+  type: NodeType.Arrow,
   relativePoints: Coordinate[],
   node1: Node | null, // this is one moved, we need to move the x/y and relative points
   node2: Node | null, // this is one moved, we need to move the relative points

@@ -5,7 +5,7 @@
   "description": "My Electron application description",
   "main": ".vite/build/main.js",
   "scripts": {
-    "start": "electron-forge start",
+    "start": "ELECTRON_ENABLE_LOGGING=1 electron-forge start",
     "package": "electron-forge package",
     "make": "electron-forge make",
     "publish": "electron-forge publish",
@@ -27,7 +27,7 @@
     "@electron-forge/plugin-fuses": "^7.8.0",
     "@electron-forge/plugin-vite": "^7.8.0",
     "@electron/fuses": "^1.8.0",
-    "@tailwindcss/vite": "^4.0.17",
+    "@tailwindcss/vite": "^4.1.3",
     "@types/electron-squirrel-startup": "^1.0.2",
     "@types/node": "^22.13.17",
     "@types/react": "^19.0.12",
