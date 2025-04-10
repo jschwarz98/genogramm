@@ -18,7 +18,7 @@ export default function Details() {
     });
 
 
-    return <div>
+    return <div className="flex-grow rounded-sm bg-white p-1 overflow-y-scroll max-w-full">
         {(() => {
             switch(node?.type) {
                 case NodeType.Person: return Person(node as PersonNode);

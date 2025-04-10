@@ -8,10 +8,9 @@ const App = () => {
     <div className='col-span-9 row-span-12 w-full h-full'>
       <Canvas></Canvas>
     </div>
-    <div className="col-span-3 row-span-2 w-full h-full">
+    <div className="col-span-3 row-span-12 flex flex-col gap-3 w-full h-full">
       <Toolbar />
-    </div>
-    <div className="col-span-3 row-span-10 w-full h-full">
+
       <Details></Details>
     </div>
   </div>

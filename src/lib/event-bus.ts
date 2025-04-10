@@ -5,6 +5,7 @@ export enum Event {
   Toolbar_Clicked_AddPerson = "Toolbar_Clicked_AddPerson",
   Toolbar_Clicked_AddRelation = "Toolbar_Clicked_AddRelation",
   Toolbar_Clicked_Export = "Toolbar_Clicked_Export",
+  Toolbar_Reset = "Toolbar_Reset",
 
   Canvas_Clicked_Canvas = "Canvas_Clicked_Cavas",
   CanvasElement_Clicked_Person = "CanvasElement_Clicked_Person",
@@ -17,6 +18,8 @@ export type EventPayload = {
   [Event.Toolbar_Clicked_AddPerson]: null;
   [Event.Toolbar_Clicked_AddRelation]: null;
   [Event.Toolbar_Clicked_Export]: null;
+  [Event.Toolbar_Reset]: null;
+
 
   [Event.CanvasElement_Clicked_Person]: string;
   [Event.Canvas_Clicked_Canvas]: null;

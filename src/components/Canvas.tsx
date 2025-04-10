@@ -1,5 +1,5 @@
 import React, {useEffect, useRef, useState} from "react";
-import {pointerEventToCanvasPoint, ZeroCoordinate} from "$/lib/utils";
+import {generateId, pointerEventToCanvasPoint, ZeroCoordinate} from "$/lib/utils";
 import {ArrowNode, CanvasMode, Coordinate, NodeType, PersonNode} from "$/types";
 import Person from "$/components/Person";
 import exportSvg from "$/lib/export/render/export-svg";
@@ -15,7 +15,7 @@ function Canvas() {
     const [mode, setMode] = useState<CanvasMode>(CanvasMode.None);
     const [offset, setOffset] = useState<Coordinate>(ZeroCoordinate);
     const [pointerOrigin, setPointerOrigin] = useState<Coordinate>(ZeroCoordinate);
-    const [pointerLocation, setPointerLocation] = useState<Coordinate>(ZeroCoordinate);
+    const [_pointerLocation, setPointerLocation] = useState<Coordinate>(ZeroCoordinate);
 
     const simplePerson: PersonNode = {
         id: 'id-123',
@@ -67,8 +67,16 @@ function Canvas() {
                 alert("error")
             }
         }
+        const setBasicTool = () => setMode(CanvasMode.None);
+        const setInsertPersonTool = () => setMode(CanvasMode.InsertingPerson);
+
+
+        Bus.on(Event.Toolbar_Clicked_Selection, setBasicTool);
+        Bus.on(Event.Toolbar_Clicked_AddPerson, setInsertPersonTool);
         Bus.on(Event.Toolbar_Clicked_Export, exportCurrentSvg);
         return () => {
+            Bus.off(Event.Toolbar_Clicked_Selection, setBasicTool);
+            Bus.off(Event.Toolbar_Clicked_AddPerson, setInsertPersonTool);
             Bus.off(Event.Toolbar_Clicked_Export, exportCurrentSvg);
         }
     })
@@ -85,23 +93,39 @@ function Canvas() {
         e.stopPropagation();
 
         const shift = e.shiftKey;
-        setPointerOrigin(pointerEventToCanvasPoint(e, getAbsoluteOffset(), offset));
+        const newPointerOrigin = pointerEventToCanvasPoint(e, getAbsoluteOffset(), offset);
+        setPointerOrigin(newPointerOrigin);
+        console.log("point", newPointerOrigin);
         if (shift) {
             setMode(CanvasMode.SelectionArea);
+        } else if (mode === CanvasMode.InsertingPerson) {
+            const newPerson: PersonNode = {
+                id: generateId(),
+                type: NodeType.Person,
+                position: newPointerOrigin,
+                dimensions: {width: 200, height: 200},
+                iconUrl: "/images/rectangle.svg",
+                name: 'new',
+                information: '',
+                border: {thickness: "1px", color: "black", style: "solid"},
+                backgroundColor: "transparent"
+            };
+            console.log("adding person", newPerson);
+            setElements([...elements, newPerson]);
         } else {
             setMode(CanvasMode.DraggingCanvas)
         }
     }
     const onMouseMove = function (e: React.MouseEvent) {
-        if (mode === CanvasMode.None || mode === CanvasMode.Inserting) {
+        if (mode === CanvasMode.None || mode === CanvasMode.InsertingPerson) {
             return;
         }
 
         const pointerLocation = pointerEventToCanvasPoint(e, getAbsoluteOffset(), offset)
         if (mode === CanvasMode.DraggingCanvas) {
-            const slowDownFactor = 0.9;
-            const xDif = Math.floor(slowDownFactor * (pointerOrigin.x - pointerLocation.x));
-            const yDif = Math.floor(slowDownFactor * (pointerOrigin.y - pointerLocation.y));
+            const speedFactor = 0.95;
+            const xDif = Math.floor(speedFactor * (pointerOrigin.x - pointerLocation.x));
+            const yDif = Math.floor(speedFactor * (pointerOrigin.y - pointerLocation.y));
             setOffset({x: offset.x + xDif, y: offset.y + yDif});
             setPointerOrigin(pointerLocation);
         } else {
@@ -112,14 +136,22 @@ function Canvas() {
     const onMouseUp = function (e: React.MouseEvent) {
         e.preventDefault();
         e.stopPropagation();
+        Bus.emit(Event.Toolbar_Reset, null);
         setMode(CanvasMode.None);
     }
     const onMouseLeave = function (e: React.MouseEvent) {
         e.preventDefault();
         e.stopPropagation();
-        if (mode !== CanvasMode.Inserting) {
+        if (mode !== CanvasMode.InsertingPerson) {
             setMode(CanvasMode.None)
         }
+    }
+
+    const onWheel = function(e: React.WheelEvent) {
+        console.log(e);
+        setCanvasWidth(canvasWidth + e.deltaY);
+        setCanvasHeight(canvasHeight + e.deltaY);
+
     }
 
 
@@ -132,6 +164,7 @@ function Canvas() {
                  onMouseDown={onMouseDown}
                  onMouseMove={onMouseMove}
                  onMouseUp={onMouseUp}
+                 onWheel={onWheel}
                  onMouseLeave={onMouseLeave}>
                 {elements.map(element => {
                     switch (element.type) {

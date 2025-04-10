@@ -16,7 +16,7 @@ export enum CanvasMode {
   None,
   DraggingCanvas, // drag and drop move visible area around
   SelectionArea, // create a area to select nodes
-  Inserting, // Inserting the selected type of node
+  InsertingPerson, // Inserting the selected type of node
   Translating, // move selected nodes
   Resizing, // resize selected nodes
 }
