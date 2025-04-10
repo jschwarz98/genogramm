@@ -4,6 +4,9 @@
     "es6": true,
     "node": true
   },
+  "plugins": [
+    "eslint-plugin-react-compiler"
+  ],
   "extends": [
     "eslint:recommended",
     "plugin:@typescript-eslint/eslint-recommended",
@@ -23,6 +26,7 @@
     }
   },
   "rules": {
-    "@typescript-eslint/no-explicit-any": "off"
+    "@typescript-eslint/no-explicit-any": "off",
+    "react-compiler/react-compiler": "error"
   }
 }

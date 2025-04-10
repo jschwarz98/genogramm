@@ -1,3 +1,4 @@
+import {StrictMode} from "react";
 import { createRoot } from 'react-dom/client';
 import Canvas from '$/components/Canvas';
 import Toolbar from '$/components/Toolbar';
@@ -17,4 +18,4 @@ const App = () => {
 }
 
 const root = createRoot(document.body);
-root.render(<App />);
+root.render(<StrictMode><App /></StrictMode>);

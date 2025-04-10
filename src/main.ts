@@ -1,4 +1,4 @@
-import {app, BrowserWindow, ipcMain} from 'electron';
+import {app, session, BrowserWindow, ipcMain} from 'electron';
 import path from 'node:path';
 import started from 'electron-squirrel-startup';
 import exportSvgAsPngHandler from "$/lib/export/main/command-handler";
@@ -28,15 +28,22 @@ const createWindow = async () => {
     } else {
         await mainWindow.loadFile(path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`));
     }
-
-    // Open the DevTools.
-    mainWindow.webContents.openDevTools();
+    await mainWindow.webContents.openDevTools();
 };
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
-app.on('ready', createWindow);
+app.on('ready', async () => {
+    if (process.env.NODE_ENV === "development") {
+        // Open the DevTools.
+        process.loadEnvFile(".dev.env");
+        const info = await session.defaultSession.loadExtension(process.env.REACT_DEV_TOOLS_PATH)
+        console.log(info);
+    }
+
+    await createWindow();
+});
 
 // Quit when all windows are closed, except on macOS. There, it's common
 // for applications and their menu bar to stay active until the user quits

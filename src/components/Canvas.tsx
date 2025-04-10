@@ -147,10 +147,11 @@ function Canvas() {
         }
     }
 
-    const onWheel = function(e: React.WheelEvent) {
+    const onWheel = function (e: React.WheelEvent) {
         console.log(e);
-        setCanvasWidth(canvasWidth + e.deltaY);
-        setCanvasHeight(canvasHeight + e.deltaY);
+        setOffset({x: offset.x - Math.floor(e.deltaY / 2), y: offset.y - Math.floor(e.deltaY / 2)})
+        setCanvasWidth(canvasWidth + Math.floor(e.deltaY));
+        setCanvasHeight(canvasHeight + Math.floor(e.deltaY));
 
     }
 
