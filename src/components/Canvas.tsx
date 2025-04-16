@@ -1,6 +1,13 @@
 import React, {useEffect, useRef, useState} from "react";
 import {generateId, pointerEventToCanvasPoint, ZeroCoordinate} from "$/lib/utils";
-import {ArrowNode, CanvasMode, Coordinate, NodeType, PersonNode} from "$/types";
+import {
+    ArrowNode,
+    CanvasMode,
+    Coordinate,
+    NodeType,
+    PersonNode,
+    NodeAttributeChangedEvent
+} from "$/types";
 import Person from "$/components/Person";
 import exportSvg from "$/lib/export/render/export-svg";
 import Bus, {Event} from "$/lib/event-bus";
@@ -17,29 +24,7 @@ function Canvas() {
     const [pointerOrigin, setPointerOrigin] = useState<Coordinate>(ZeroCoordinate);
     const [_pointerLocation, setPointerLocation] = useState<Coordinate>(ZeroCoordinate);
 
-    const simplePerson: PersonNode = {
-        id: 'id-123',
-        backgroundColor: 'red',
-        border: {style: 'solid', color: 'black', thickness: '1px'},
-        position: {x: 1500, y: 100},
-        dimensions: {width: 200, height: 200},
-        iconUrl: null,
-        name: 'Test Person',
-        information: 'got some info on you!',
-        type: NodeType.Person,
-    }
-    const simplePerson2: PersonNode = {
-        id: 'id-1234',
-        backgroundColor: 'red',
-        border: {style: 'solid', color: 'black', thickness: '1px'},
-        position: {x: 0, y: 0},
-        dimensions: {width: 200, height: 2500},
-        iconUrl: null,
-        name: 'Test Person',
-        information: 'got some info on you!',
-        type: NodeType.Person,
-    }
-    const [elements, setElements] = useState<Array<PersonNode | ArrowNode>>([simplePerson, simplePerson2]);
+    const [elements, setElements] = useState<(PersonNode | ArrowNode)[]>([]);
 
     const svgResizeObserver = useRef<ResizeObserver>(new ResizeObserver((entries: ResizeObserverEntry[]) => {
         entries.forEach(entry => {
@@ -58,6 +43,33 @@ function Canvas() {
         };
     }, [svgRef])
 
+    const changeAttributeOnElement = <K extends keyof PersonNode>(payload: NodeAttributeChangedEvent<PersonNode, K>) => {
+        const id = payload.id;
+        let updatedElement = null;
+        console.log("updating elements", elements);
+        const updatedElements = elements.map(element => {
+            if (element.id === id && element.type === NodeType.Person) {
+                element[payload.field] = payload.value;
+                updatedElement = element;
+            }
+            return element;
+        });
+        console.log("updated elements:", updatedElements);
+        setElements(updatedElements);
+        if (updatedElement) {
+            console.log("updated the element", updatedElement);
+            Bus.emit(Event.Node_Selected, updatedElement);
+        }
+    }
+    // rerun all the time to recapture the new elements on rerenders
+    useEffect(() => {
+        Bus.on(Event.Person_Attribute_Changed, changeAttributeOnElement);
+        return () => {
+            Bus.off(Event.Person_Attribute_Changed, changeAttributeOnElement);
+        }
+    });
+
+    // run only on inital mount
     useEffect(() => {
         const exportCurrentSvg = async () => {
             const result = await exportSvg(svgRef.current);
@@ -75,11 +87,11 @@ function Canvas() {
         Bus.on(Event.Toolbar_Clicked_AddPerson, setInsertPersonTool);
         Bus.on(Event.Toolbar_Clicked_Export, exportCurrentSvg);
         return () => {
-            Bus.off(Event.Toolbar_Clicked_Selection, setBasicTool);
             Bus.off(Event.Toolbar_Clicked_AddPerson, setInsertPersonTool);
             Bus.off(Event.Toolbar_Clicked_Export, exportCurrentSvg);
+            Bus.off(Event.Toolbar_Clicked_Selection, setBasicTool);
         }
-    })
+    }, [])
 
     const getAbsoluteOffset = function (): Coordinate {
         if (!svgRef) {
@@ -95,7 +107,6 @@ function Canvas() {
         const shift = e.shiftKey;
         const newPointerOrigin = pointerEventToCanvasPoint(e, getAbsoluteOffset(), offset);
         setPointerOrigin(newPointerOrigin);
-        console.log("point", newPointerOrigin);
         if (shift) {
             setMode(CanvasMode.SelectionArea);
         } else if (mode === CanvasMode.InsertingPerson) {
@@ -105,13 +116,14 @@ function Canvas() {
                 position: newPointerOrigin,
                 dimensions: {width: 200, height: 200},
                 iconUrl: "/images/rectangle.svg",
-                name: 'new',
+                name: '',
                 information: '',
                 border: {thickness: "1px", color: "black", style: "solid"},
                 backgroundColor: "transparent"
             };
             console.log("adding person", newPerson);
             setElements([...elements, newPerson]);
+            setTimeout(() => console.log(elements), 10);
         } else {
             setMode(CanvasMode.DraggingCanvas)
         }
@@ -148,10 +160,32 @@ function Canvas() {
     }
 
     const onWheel = function (e: React.WheelEvent) {
-        console.log(e);
-        setOffset({x: offset.x - Math.floor(e.deltaY / 2), y: offset.y - Math.floor(e.deltaY / 2)})
-        setCanvasWidth(canvasWidth + Math.floor(e.deltaY));
-        setCanvasHeight(canvasHeight + Math.floor(e.deltaY));
+
+        const deltaY = Math.floor(e.deltaY);
+        const minSize = 50;
+        const maxSize = 10_000;
+
+        let transform = 0;
+        if (deltaY <= 0) {
+            const smallerDimension = Math.min(canvasWidth, canvasHeight);
+            const remainingZoomIn = Math.max(smallerDimension - minSize, 0);
+            if (remainingZoomIn + deltaY <= 0) {
+                transform = -remainingZoomIn;
+            } else {
+                transform = deltaY;
+            }
+        } else {
+            const largerDimension = Math.max(canvasWidth, canvasHeight);
+            const zoomOutWiggleRoom = Math.max(maxSize - largerDimension, 0);
+            if (deltaY > zoomOutWiggleRoom) {
+                transform = zoomOutWiggleRoom;
+            } else {
+                transform = deltaY;
+            }
+        }
+        setOffset({x: offset.x - Math.floor(transform / 2), y: offset.y - Math.floor(transform / 2)})
+        setCanvasWidth(canvasWidth + Math.round(transform));
+        setCanvasHeight(canvasHeight + Math.round(transform));
 
     }
 

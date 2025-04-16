@@ -13,20 +13,30 @@ function Person(props: Types.PersonNode) {
                           y={props.position.y}
                           width={props.dimensions.width}
                           height={props.dimensions.height}
-                          onMouseDown={() => Bus.emit(Event.NodeSelected, props)}>
+                          onMouseDown={() => Bus.emit(Event.Node_Selected, props)}>
         <div className="flex flex-col items-center justify-between h-full p-1 overflow-hidden" style={containerStyle}>
-            {props.iconUrl ? <>
-                    <div className="w-full flex-grow overflow-hidden">
-                        <img
-                            src={props.iconUrl}
-                            alt={`picture or symbol of person ${props.name}`}
-                            className="w-full h-full object-contain"
-                        />
-                    </div>
-                    <p className="mt-1 text-center">{props.name}</p>
-                </>
-                : <p>{props.name}</p>
+            {props.iconUrl
+                ? <div className="w-full flex-grow overflow-hidden">
+                    <img
+                        src={props.iconUrl}
+                        alt={`picture or symbol of person ${props.name}`}
+                        className="w-full h-full object-contain"
+                    />
+                </div>
+                : null}
+
+            {props.name
+                ? <p className="mt-1 overflow-hidden text-center content-center" style={{
+                    display: '-webkit-box',
+                    WebkitBoxOrient: 'vertical',
+                    WebkitLineClamp: 2,
+                    height: '3em',
+                    lineHeight: '1.25em',
+                    wordBreak: 'break-word'
+                }}>{props.name}</p>
+                : null
             }
+
         </div>
     </foreignObject>
 }
